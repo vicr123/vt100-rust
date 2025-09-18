@@ -56,15 +56,25 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
     }
 
     fn esc_dispatch(&mut self, intermediates: &[u8], _ignore: bool, b: u8) {
-        if let Some(i) = intermediates.first() {
-            self.callbacks.unhandled_escape(
-                &mut self.screen,
-                Some(*i),
-                intermediates.get(1).copied(),
-                b,
-            );
-        } else {
-            match b {
+        match intermediates.first() {
+            Some(b'#') => match b {
+                b'8' => self.screen.decaln(),
+                _ => self.callbacks.unhandled_escape(
+                    &mut self.screen,
+                    Some(b'#'),
+                    intermediates.get(1).copied(),
+                    b,
+                ),
+            },
+            Some(i) => {
+                self.callbacks.unhandled_escape(
+                    &mut self.screen,
+                    Some(*i),
+                    intermediates.get(1).copied(),
+                    b,
+                );
+            }
+            None => match b {
                 b'7' => self.screen.decsc(),
                 b'8' => self.screen.decrc(),
                 b'=' => self.screen.deckpam(),
@@ -80,7 +90,7 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
                         b,
                     );
                 }
-            }
+            },
         }
     }
 

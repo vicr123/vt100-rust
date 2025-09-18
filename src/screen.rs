@@ -1,5 +1,6 @@
 use crate::term::BufWrite as _;
 use unicode_width::UnicodeWidthChar as _;
+use crate::grid::Pos;
 
 const MODE_APPLICATION_KEYPAD: u8 = 0b0000_0001;
 const MODE_APPLICATION_CURSOR: u8 = 0b0000_0010;
@@ -997,6 +998,18 @@ impl Screen {
     // ESC c
     pub(crate) fn ris(&mut self) {
         *self = Self::new(self.grid.size(), self.grid.scrollback_len());
+    }
+
+    // ESC # 8
+    pub(crate) fn decaln(&mut self) {
+        for y in 0..self.grid().size().rows {
+            for x in 0..self.grid().size().cols {
+                self.grid_mut().drawing_cell_mut(Pos {
+                    row: y,
+                    col: x,
+                }).unwrap().set('E', crate::attrs::Attrs::default())
+            }
+        }
     }
 
     // csi codes
