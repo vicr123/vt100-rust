@@ -7,6 +7,7 @@ const MODE_APPLICATION_CURSOR: u8 = 0b0000_0010;
 const MODE_HIDE_CURSOR: u8 = 0b0000_0100;
 const MODE_ALTERNATE_SCREEN: u8 = 0b0000_1000;
 const MODE_BRACKETED_PASTE: u8 = 0b0001_0000;
+const MODE_NEW_LINE: u8 = 0b0010_0000;
 
 /// The xterm mouse handling mode currently in use.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
@@ -394,6 +395,8 @@ impl Screen {
         .write_buf(contents);
         crate::term::BracketedPaste::new(self.mode(MODE_BRACKETED_PASTE))
             .write_buf(contents);
+        crate::term::BracketedPaste::new(self.mode(MODE_NEW_LINE))
+            .write_buf(contents);
         crate::term::MouseProtocolMode::new(
             self.mouse_protocol_mode,
             MouseProtocolMode::None,
@@ -436,6 +439,11 @@ impl Screen {
         if self.mode(MODE_BRACKETED_PASTE) != prev.mode(MODE_BRACKETED_PASTE)
         {
             crate::term::BracketedPaste::new(self.mode(MODE_BRACKETED_PASTE))
+                .write_buf(contents);
+        }
+        if self.mode(MODE_NEW_LINE) != prev.mode(MODE_NEW_LINE)
+        {
+            crate::term::BracketedPaste::new(self.mode(MODE_NEW_LINE))
                 .write_buf(contents);
         }
         crate::term::MouseProtocolMode::new(
@@ -572,6 +580,12 @@ impl Screen {
     #[must_use]
     pub fn bracketed_paste(&self) -> bool {
         self.mode(MODE_BRACKETED_PASTE)
+    }
+
+    /// Returns whether the terminal should be in new line mode
+    #[must_use]
+    pub fn new_line_mode(&self) -> bool {
+        self.mode(MODE_NEW_LINE)
     }
 
     /// Returns the currently active [`MouseProtocolMode`].
@@ -1146,6 +1160,15 @@ impl Screen {
     // CSI d
     pub(crate) fn vpa(&mut self, row: u16) {
         self.grid_mut().row_set(row - 1);
+    }
+
+    // CSI 2 0 h, CSI 2 0 l
+    pub(crate) fn lnm(&mut self, high: bool) {
+        if high {
+            self.set_mode(MODE_NEW_LINE);
+        } else {
+            self.clear_mode(MODE_NEW_LINE);
+        }
     }
 
     // CSI ? h

@@ -172,6 +172,38 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
                     params,
                     self.screen.grid().size(),
                 )),
+                'h' => {
+                    let mut params_iter = params.iter();
+                    let op =
+                        params_iter.next().and_then(|x| x.first().copied());
+                    if op == Some(20) {
+                        self.screen.lnm(true)
+                    } else {
+                        self.callbacks.unhandled_csi(
+                            &mut self.screen,
+                            None,
+                            None,
+                            &params.iter().collect::<Vec<_>>(),
+                            c,
+                        );
+                    }
+                },
+                'l' => {
+                    let mut params_iter = params.iter();
+                    let op =
+                        params_iter.next().and_then(|x| x.first().copied());
+                    if op == Some(20) {
+                        self.screen.lnm(false)
+                    } else {
+                        self.callbacks.unhandled_csi(
+                            &mut self.screen,
+                            None,
+                            None,
+                            &params.iter().collect::<Vec<_>>(),
+                            c,
+                        );
+                    }
+                },
                 't' => {
                     let mut params_iter = params.iter();
                     let op =
