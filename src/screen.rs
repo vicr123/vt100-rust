@@ -1056,7 +1056,7 @@ impl Screen {
         self.grid_mut().col_set(col - 1);
     }
 
-    // CSI H
+    // CSI H, CSI f
     pub(crate) fn cup(&mut self, (row, col): (u16, u16)) {
         self.grid_mut().set_pos(crate::grid::Pos {
             row: row - 1,

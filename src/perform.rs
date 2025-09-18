@@ -82,6 +82,11 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
                 b'M' => self.screen.ri(),
                 b'c' => self.screen.ris(),
                 b'g' => self.callbacks.visual_bell(&mut self.screen),
+                b'D' => self.screen.lf(),
+                b'E' => {
+                    self.screen.cr();
+                    self.screen.lf();
+                }
                 _ => {
                     self.callbacks.unhandled_escape(
                         &mut self.screen,
@@ -134,6 +139,7 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
                 'T' => self.screen.sd(canonicalize_params_1(params, 1)),
                 'X' => self.screen.ech(canonicalize_params_1(params, 1)),
                 'd' => self.screen.vpa(canonicalize_params_1(params, 1)),
+                'f' => self.screen.cup(canonicalize_params_2(params, 1, 1)),
                 'm' => self.screen.sgr(params, unhandled),
                 'r' => self.screen.decstbm(canonicalize_params_decstbm(
                     params,
