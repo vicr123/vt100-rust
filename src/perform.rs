@@ -1,3 +1,5 @@
+use vte::Params;
+
 const BASE64: &[u8] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 const CLIPBOARD_SELECTOR: &[u8] = b"cpqs01234567";
@@ -26,6 +28,30 @@ impl<CB: crate::callbacks::Callbacks> WrappedScreen<CB> {
                 scrollback_len,
             ),
             callbacks,
+        }
+    }
+
+    fn terminal_report(&mut self, report: u16) {
+        match report {
+            5 => {
+                // Device Status Report (OK)
+                self.callbacks.write_to_pty(&mut self.screen, b"\x1B[0n")
+            }
+            6 => {
+                // Get Cursor Position
+                let (mut cursor_v, cursor_h) = self.screen.cursor_position();
+                if self.screen.grid().origin_mode {
+                    cursor_v -= self.screen.grid().scroll_top;
+                }
+                self.callbacks.write_to_pty(
+                    &mut self.screen,
+                    format!("\x1B[{};{}R", cursor_v + 1, cursor_h + 1)
+                        .as_bytes(),
+                )
+            }
+            _ => {
+                // Unsupported report
+            }
         }
     }
 }
@@ -141,6 +167,7 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
                 'd' => self.screen.vpa(canonicalize_params_1(params, 1)),
                 'f' => self.screen.cup(canonicalize_params_2(params, 1, 1)),
                 'm' => self.screen.sgr(params, unhandled),
+                'n' => self.terminal_report(canonicalize_params_1(params, 0)),
                 'r' => self.screen.decstbm(canonicalize_params_decstbm(
                     params,
                     self.screen.grid().size(),

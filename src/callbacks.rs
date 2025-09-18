@@ -64,6 +64,10 @@ pub trait Callbacks {
     /// This callback is called when the terminal receives a OSC sequence
     /// (`\e]`) which is otherwise not implemented.
     fn unhandled_osc(&mut self, _: &mut crate::Screen, _params: &[&[u8]]) {}
+
+    /// This callback is called when the terminal wants data to be written
+    /// to the pty.
+    fn write_to_pty(&mut self, _: &mut crate::Screen, _bytes: &[u8]) {}
 }
 
 impl Callbacks for () {}
