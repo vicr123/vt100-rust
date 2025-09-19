@@ -8,6 +8,7 @@ const MODE_HIDE_CURSOR: u8 = 0b0000_0100;
 const MODE_ALTERNATE_SCREEN: u8 = 0b0000_1000;
 const MODE_BRACKETED_PASTE: u8 = 0b0001_0000;
 const MODE_NEW_LINE: u8 = 0b0010_0000;
+const MODE_REVERSE_VIDEO: u8 = 0b0100_0000;
 
 /// The xterm mouse handling mode currently in use.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Default)]
@@ -397,6 +398,8 @@ impl Screen {
             .write_buf(contents);
         crate::term::BracketedPaste::new(self.mode(MODE_NEW_LINE))
             .write_buf(contents);
+        crate::term::BracketedPaste::new(self.mode(MODE_REVERSE_VIDEO))
+            .write_buf(contents);
         crate::term::MouseProtocolMode::new(
             self.mouse_protocol_mode,
             MouseProtocolMode::None,
@@ -444,6 +447,11 @@ impl Screen {
         if self.mode(MODE_NEW_LINE) != prev.mode(MODE_NEW_LINE)
         {
             crate::term::BracketedPaste::new(self.mode(MODE_NEW_LINE))
+                .write_buf(contents);
+        }
+        if self.mode(MODE_REVERSE_VIDEO) != prev.mode(MODE_REVERSE_VIDEO)
+        {
+            crate::term::BracketedPaste::new(self.mode(MODE_REVERSE_VIDEO))
                 .write_buf(contents);
         }
         crate::term::MouseProtocolMode::new(
@@ -586,6 +594,12 @@ impl Screen {
     #[must_use]
     pub fn new_line_mode(&self) -> bool {
         self.mode(MODE_NEW_LINE)
+    }
+
+    /// Returns whether the terminal should be in reverse video mode
+    #[must_use]
+    pub fn reverse_video(&self) -> bool {
+        self.mode(MODE_REVERSE_VIDEO)
     }
 
     /// Returns the currently active [`MouseProtocolMode`].
@@ -1180,6 +1194,7 @@ impl Screen {
         for param in params {
             match param {
                 [1] => self.set_mode(MODE_APPLICATION_CURSOR),
+                [5] => self.set_mode(MODE_REVERSE_VIDEO),
                 [6] => self.grid_mut().set_origin_mode(true),
                 [9] => self.set_mouse_mode(MouseProtocolMode::Press),
                 [25] => self.clear_mode(MODE_HIDE_CURSOR),
@@ -1217,6 +1232,7 @@ impl Screen {
         for param in params {
             match param {
                 [1] => self.clear_mode(MODE_APPLICATION_CURSOR),
+                [5] => self.clear_mode(MODE_REVERSE_VIDEO),
                 [6] => self.grid_mut().set_origin_mode(false),
                 [9] => self.clear_mouse_mode(MouseProtocolMode::Press),
                 [25] => self.set_mode(MODE_HIDE_CURSOR),
