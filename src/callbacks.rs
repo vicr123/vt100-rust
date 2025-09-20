@@ -21,6 +21,10 @@ pub trait Callbacks {
     /// This callback is called when the terminal requests the window title
     /// to be set (typically with `\e]2;<title>\a`)
     fn set_window_title(&mut self, _: &mut crate::Screen, _title: &[u8]) {}
+    /// This callback is called when the shell changes the current working directory
+    /// (typically with `\e]7;<working_directory>\a`). Note that the working directory
+    /// will typically be in the form of a file: URL, with the addition of a host.
+    fn set_working_directory(&mut self, _: &mut crate::Screen, _working_directory: &[u8]) {}
     /// This callback is called when the terminal requests data to be copied
     /// to the system clipboard (typically with `\e]52;<ty>;<data>\a`). Note
     /// that `data` will be encoded as base64.

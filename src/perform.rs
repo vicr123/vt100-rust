@@ -282,6 +282,9 @@ impl<CB: crate::callbacks::Callbacks> vte::Perform for WrappedScreen<CB> {
             [b"2", s] => {
                 self.callbacks.set_window_title(&mut self.screen, s);
             }
+            [b"7", s] => {
+                self.callbacks.set_working_directory(&mut self.screen, s);
+            }
             [b"52", ty, data] => {
                 match (
                     ty.iter().all(|c| CLIPBOARD_SELECTOR.contains(c)),
