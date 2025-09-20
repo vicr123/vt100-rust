@@ -176,4 +176,11 @@ impl Cell {
     pub fn inverse(&self) -> bool {
         self.attrs.inverse()
     }
+
+    /// Returns whether the cell should be rendered with the blink text
+    /// attribute.
+    #[must_use]
+    pub fn blink(&self) -> bool {
+        self.attrs.blink()
+    }
 }

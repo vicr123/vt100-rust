@@ -20,6 +20,7 @@ const TEXT_MODE_DIM: u8 = 0b0000_0010;
 const TEXT_MODE_ITALIC: u8 = 0b0000_0100;
 const TEXT_MODE_UNDERLINE: u8 = 0b0000_1000;
 const TEXT_MODE_INVERSE: u8 = 0b0001_0000;
+const TEXT_MODE_BLINK: u8 = 0b0010_0000;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Attrs {
@@ -90,6 +91,18 @@ impl Attrs {
             self.mode &= !TEXT_MODE_INVERSE;
         }
     }
+    
+    pub fn blink(&self) -> bool {
+        self.mode & TEXT_MODE_BLINK != 0
+    }
+
+    pub fn set_blink(&mut self, blink: bool) {
+        if blink {
+            self.mode |= TEXT_MODE_BLINK;
+        } else {
+            self.mode &= !TEXT_MODE_BLINK;
+        }
+    }
 
     pub fn write_escape_code_diff(
         &self,
@@ -137,6 +150,11 @@ impl Attrs {
             attrs
         } else {
             attrs.inverse(self.inverse())
+        };
+        let attrs = if self.blink() == other.blink() {
+            attrs
+        } else {
+            attrs.blink(self.blink())
         };
 
         attrs.write_buf(contents);

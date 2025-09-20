@@ -120,6 +120,7 @@ pub struct Attrs {
     italic: Option<bool>,
     underline: Option<bool>,
     inverse: Option<bool>,
+    blink: Option<bool>,
 }
 
 impl Attrs {
@@ -150,6 +151,11 @@ impl Attrs {
 
     pub fn inverse(mut self, inverse: bool) -> Self {
         self.inverse = Some(inverse);
+        self
+    }
+
+    pub fn blink(mut self, blink: bool) -> Self {
+        self.blink = Some(blink);
         self
     }
 }
